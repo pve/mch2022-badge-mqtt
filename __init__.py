@@ -9,6 +9,8 @@ Configuration: edit the constants below before uploading.
 import display
 import wifi
 import utime
+import buttons
+import mch22
 from umqtt.simple import MQTTClient
 
 # ── Configuration ─────────────────────────────────────────────────────────────
@@ -40,10 +42,17 @@ FONT_BIG    = "permanentmarker22"
 FONT_MED    = "roboto_regular18"
 FONT_SMALL  = "7x5"
 
+def on_home(pressed):
+    if pressed:
+        mch22.exit_python()
+
+buttons.attach(buttons.BTN_HOME, on_home)
+
 MAX_HISTORY = 6           # Lines of message history to keep
 message_history = []      # list of (topic_str, payload_str)
 status_text     = "Starting..."
 status_ok       = False
+error_text      = None
 
 
 def draw_screen():
@@ -63,6 +72,11 @@ def draw_screen():
     display.drawRect(W - 14, 6, 10, 10, True, indicator)
     display.drawText(6, H - 16, status_text, COL_STATUS, FONT_SMALL)
 
+    # Error overlay
+    if error_text:
+        display.drawRect(10, H // 2 - 20, W - 20, 40, True, COL_ERR)
+        display.drawText(16, H // 2 - 12, "ERR: " + error_text, COL_MSG, FONT_SMALL)
+
     # Message history — newest at the top
     y = 52
     line_h = 28
@@ -71,16 +85,19 @@ def draw_screen():
             break
         # Dim separator line
         display.drawLine(6, y - 3, W - 6, y - 3, COL_ACCENT)
-        display.drawText(6, y, msg, COL_MSG, FONT_SMALL)
+        colour = COL_ERR if topic == "ERR" else COL_MSG
+        prefix = "ERR: " if topic == "ERR" else ""
+        display.drawText(6, y, prefix + msg, colour, FONT_SMALL)
         y += line_h
 
     display.flush()
 
 
-def set_status(text, ok=True):
-    global status_text, status_ok
+def set_status(text, ok=True, error=None):
+    global status_text, status_ok, error_text
     status_text = text
     status_ok   = ok
+    error_text  = error
     draw_screen()
 
 
@@ -118,7 +135,7 @@ def connect_mqtt():
     client.set_callback(on_message)
     client.connect()
     client.subscribe(MQTT_TOPIC)
-    set_status("Listening: " + MQTT_TOPIC.decode(), ok=True)
+    set_status("Listening: " + MQTT_TOPIC.decode(), ok=True, error=None)
     return client
 
 
@@ -136,7 +153,11 @@ def main():
             utime.sleep_ms(100)
 
         except OSError as e:
-            set_status("Error: " + str(e), ok=False)
+            err = str(e)
+            message_history.append(("ERR", err))
+            if len(message_history) > MAX_HISTORY:
+                message_history.pop(0)
+            set_status("Reconnecting…", ok=False, error=err)
             try:
                 client.disconnect()
             except Exception:

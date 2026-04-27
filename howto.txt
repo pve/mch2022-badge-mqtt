@@ -1,10 +1,20 @@
 howto.txt
 
-To use them, you will need to `uv pip install pyusb`.
+Use the updated tools from https://github.com/badgeteam/mch2022-tools (not the old mch2022-tools-master).
 
-python3 ../mch2022-tools-master/webusb_fat_push.py __init__.py /flash/apps/python/peterhello/__init__.py
-~~~~~~~~~
-python3 ../../2022/mch2022-tools-master/webusb_fat_push.py __init__.py /internal/apps/python/hamqtt/__init__.py
+Install dependency:
+  uv pip install pyusb --python $(which python3)
+
+Create the app directory on the badge (first time only):
+  python3 ../mch2022-tools/filesystem_create_directory.py /internal/apps/python/hamqtt
+
+Push a file:
+  python3 ../mch2022-tools/filesystem_push.py __init__.py /internal/apps/python/hamqtt/__init__.py
+
+Reset the badge after pushing:
+  python3 ../mch2022-tools/exit.py
+
+Paths must start with /internal (for flash) or /sd (for SD card).
 
 
 How to deploy it
