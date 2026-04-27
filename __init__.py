@@ -11,6 +11,7 @@ import wifi
 import utime
 import buttons
 import mch22
+
 from umqtt.simple import MQTTClient
 
 # ── Configuration ─────────────────────────────────────────────────────────────
@@ -52,7 +53,6 @@ MAX_HISTORY = 6           # Lines of message history to keep
 message_history = []      # list of (topic_str, payload_str)
 status_text     = "Starting..."
 status_ok       = False
-error_text      = None
 
 
 def draw_screen():
@@ -72,11 +72,6 @@ def draw_screen():
     display.drawRect(W - 14, 6, 10, 10, True, indicator)
     display.drawText(6, H - 16, status_text, COL_STATUS, FONT_SMALL)
 
-    # Error overlay
-    if error_text:
-        display.drawRect(10, H // 2 - 20, W - 20, 40, True, COL_ERR)
-        display.drawText(16, H // 2 - 12, "ERR: " + error_text, COL_MSG, FONT_SMALL)
-
     # Message history — newest at the top
     y = 52
     line_h = 28
@@ -93,11 +88,10 @@ def draw_screen():
     display.flush()
 
 
-def set_status(text, ok=True, error=None):
-    global status_text, status_ok, error_text
+def set_status(text, ok=True):
+    global status_text, status_ok
     status_text = text
     status_ok   = ok
-    error_text  = error
     draw_screen()
 
 
@@ -135,7 +129,7 @@ def connect_mqtt():
     client.set_callback(on_message)
     client.connect()
     client.subscribe(MQTT_TOPIC)
-    set_status("Listening: " + MQTT_TOPIC.decode(), ok=True, error=None)
+    set_status("Listening: " + MQTT_TOPIC.decode(), ok=True)
     return client
 
 
@@ -157,7 +151,7 @@ def main():
             message_history.append(("ERR", err))
             if len(message_history) > MAX_HISTORY:
                 message_history.pop(0)
-            set_status("Reconnecting…", ok=False, error=err)
+            set_status("Reconnecting…", ok=False)
             try:
                 client.disconnect()
             except Exception:
