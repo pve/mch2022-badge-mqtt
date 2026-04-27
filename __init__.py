@@ -75,14 +75,12 @@ def draw_screen():
     # Message history — newest at the top
     y = 52
     line_h = 28
-    for topic, msg in reversed(message_history):
+    for _, msg in reversed(message_history):
         if y + line_h > H - 20:
             break
         # Dim separator line
         display.drawLine(6, y - 3, W - 6, y - 3, COL_ACCENT)
-        colour = COL_ERR if topic == "ERR" else COL_MSG
-        prefix = "ERR: " if topic == "ERR" else ""
-        display.drawText(6, y, prefix + msg, colour, FONT_SMALL)
+        display.drawText(6, y, msg, COL_MSG, FONT_SMALL)
         y += line_h
 
     display.flush()
@@ -146,11 +144,7 @@ def main():
             client.check_msg()
             utime.sleep_ms(100)
 
-        except OSError as e:
-            err = str(e)
-            message_history.append(("ERR", err))
-            if len(message_history) > MAX_HISTORY:
-                message_history.pop(0)
+        except OSError:
             set_status("Reconnecting…", ok=False)
             try:
                 client.disconnect()
