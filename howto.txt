@@ -1,0 +1,23 @@
+howto.txt
+
+To use them, you will need to `uv pip install pyusb`.
+
+python3 ../mch2022-tools-master/webusb_fat_push.py __init__.py /flash/apps/python/peterhello/__init__.py
+~~~~~~~~~
+python3 ../../2022/mch2022-tools-master/webusb_fat_push.py __init__.py /internal/apps/python/hamqtt/__init__.py
+
+
+How to deploy it
+The easiest path is via the MicroPython shell over USB serial (the badge presents as a serial device):
+bash# Connect
+screen /dev/ttyACM0 115200
+# or use mpremote:
+mpremote connect /dev/ttyACM0 cp mqtt_display.py :mqtt_display.py
+mpremote run mqtt_display.py
+To make it launch automatically, name it main.py or call it from main.py.
+A few notes:
+
+WiFi credentials are configured in the badge's own settings menu — the wifi.connect() call picks them up automatically, so no SSID/password needed in the code.
+The umqtt.simple docs page on badge.team was empty, but umqtt.simple is standard MicroPython — the API used here (MQTTClient, set_callback, check_msg, subscribe) is the canonical one.
+The MCH2022 screen is 320×240. The font names (permanentmarker22, roboto_regular18, 7x5) are from the badge firmware; 7x5 is the safe fallback if the others aren't present on your build.
+If you want TLS (port 8883), you'd wrap the socket with ussl — let me know and I can add that.
