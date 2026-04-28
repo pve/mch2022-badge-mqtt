@@ -1,0 +1,54 @@
+MCH2022 Badge Available Fonts
+Source: https://github.com/badgeteam/badgePython/blob/master/components/driver_framebuffer/driver_framebuffer_text.cpp
+
+Tiny / bitmap
+  7x5
+  org18
+  org01_8
+
+Fairlight
+  fairlight8
+  fairlight12
+
+DejaVu Sans
+  dejavusans20
+
+Permanent Marker (handwritten)
+  permanentmarker22
+  permanentmarker36
+
+Roboto
+  roboto_regular12
+  roboto_regular18
+  roboto_regular22
+  roboto_black22
+  roboto_blackitalic24
+
+Exo 2 (clean sans-serif, 3 weights x 3 sizes)
+  exo2_regular12
+  exo2_regular18
+  exo2_regular22
+  exo2_thin12
+  exo2_thin18
+  exo2_thin22
+  exo2_bold12
+  exo2_bold18
+  exo2_bold22
+
+OCR-A
+  ocra16
+  ocra22
+
+Press Start 2P (retro pixel, MCH2022 native)
+  press_start_2p6
+  press_start_2p8
+  press_start_2p9
+  press_start_2p12
+  press_start_2p18
+  press_start_2p22
+
+Weather icons
+  weather42
+
+Other
+  pixelade13
