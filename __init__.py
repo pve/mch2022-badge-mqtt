@@ -56,6 +56,39 @@ status_ok   = False
 last_topic  = MQTT_TOPIC.decode()
 
 
+BAT_W = 36  # outline width
+BAT_H = 12  # outline height
+BAT_X = W - 14 - 4 - BAT_W  # left of the status dot, with gap
+
+
+def draw_battery():
+    try:
+        vbat = mch22.read_vbat()
+        vusb = mch22.read_vusb()
+        pct  = max(0, min(100, int((vbat - 3.2) / (4.2 - 3.2) * 100)))
+    except Exception:
+        return
+    by = (26 - BAT_H) // 2          # vertically centered in header
+    display.drawRect(BAT_X, by, BAT_W, BAT_H, False, COL_LABEL)
+    fill_w = max(1, (BAT_W - 2) * pct // 100)
+    charging = vusb > 4.0
+    if charging:
+        col = COL_STATUS             # teal = charging
+    elif pct > 50:
+        col = COL_GREEN
+    elif pct > 20:
+        col = COL_WHITE              # yellow in this palette
+    else:
+        col = COL_RED
+    display.drawRect(BAT_X + 1, by + 1, fill_w, BAT_H - 2, True, col)
+
+
+def draw_arrow(cx, y, size, up, color):
+    for i in range(size):
+        w = 2 * i + 1 if up else 2 * (size - i) - 1
+        display.drawRect(cx - w // 2, y + i, w, 1, True, color)
+
+
 def draw_bg():
     display.drawFill(COL_BG)
     spacing = 24
@@ -73,6 +106,7 @@ def draw_screen():
     display.drawText(6, 4, "Power Monitor", COL_LABEL, FONT_MED)
     dot = COL_OK if status_ok else COL_ERR
     display.drawRect(W - 14, 7, 10, 10, True, dot)
+    draw_battery()
 
     if pv_w is None:
         display.drawText(6, 60, "Waiting for data...", COL_STATUS, FONT_MED)
@@ -80,36 +114,35 @@ def draw_screen():
         display.flush()
         return
 
-    # ── PV row ────────────────────────────────────────────────────────────────
-    display.drawText(6, 30, "Solar PV", COL_LABEL, FONT_MED)
-    display.drawText(6, 44, str(pv_w) + " W", COL_WHITE, FONT_BIG)
+    # ── PV (top left) + Home use (top right) ─────────────────────────────────
+    home_w = (pv_w or 0) + (cons_w or 0) - (prod_w or 0)
+    mid = W // 2 + 4
+    display.drawText(6,   30, "Solar PV",  COL_LABEL, FONT_MED)
+    display.drawText(6,   44, str(pv_w) + " W", COL_WHITE, FONT_BIG)
+    display.drawText(mid, 30, "Home use",  COL_LABEL, FONT_MED)
+    display.drawText(mid, 44, str(home_w) + " W", COL_WHITE, FONT_BIG)
 
-    # ── Grid row ──────────────────────────────────────────────────────────────
-    grid_x = W // 2 + 4
-    display.drawText(grid_x, 30, "Grid", COL_LABEL, FONT_MED)
+    # Divider
+    display.drawLine(6, 78, W - 6, 78, COL_ACCENT)
 
+    # ── Grid (full width, 2x scale) ───────────────────────────────────────────
     if prod_w and prod_w > 0:
         grid_val = prod_w
         grid_col = COL_GREEN
-        grid_dir = "^ "
+        grid_up  = True
     elif cons_w and cons_w > 0:
         grid_val = cons_w
         grid_col = COL_RED
-        grid_dir = "v "
+        grid_up  = False
     else:
         grid_val = 0
         grid_col = COL_WHITE
-        grid_dir = "  "
+        grid_up  = None
 
-    display.drawText(grid_x, 44, grid_dir + str(grid_val) + " W", grid_col, FONT_BIG)
-
-    # Divider
-    display.drawLine(6, 92, W - 6, 92, COL_ACCENT)
-
-    # ── Home use row ──────────────────────────────────────────────────────────
-    home_w = (pv_w or 0) + (cons_w or 0) - (prod_w or 0)
-    display.drawText(6, 96, "Home use", COL_LABEL, FONT_MED)
-    display.drawText(6, 110, str(home_w) + " W", COL_WHITE, FONT_BIG)
+    display.drawText(6, 84, "Grid", COL_LABEL, FONT_MED)
+    if grid_up is not None:
+        draw_arrow(22, 103, 18, grid_up, grid_col)  # 18px triangle, vertically centered with 2x text
+    display.drawText(42, 100, str(grid_val) + " W", grid_col, FONT_BIG, 2, 2)
 
     # ── Diagnostics ───────────────────────────────────────────────────────────
     display.drawLine(6, H - 22, W - 6, H - 22, COL_ACCENT)
