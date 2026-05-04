@@ -5,3 +5,5 @@ __pycache__/
 *.pyc
 *.pyo
 CLAUDE.md
+mch2022-badge-mqtt.code-workspace
+.esphome/
