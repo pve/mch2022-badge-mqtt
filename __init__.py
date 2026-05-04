@@ -80,7 +80,7 @@ def draw_battery():
         col = COL_WHITE              # yellow in this palette
     else:
         col = COL_RED
-    display.drawRect(BAT_X + 1, by + 1, fill_w, BAT_H - 2, True, col)
+    display.drawRect(BAT_X + 1, by + 2, fill_w, BAT_H - 3, True, col)
 
 
 def draw_arrow(cx, y, size, up, color):
